@@ -7,24 +7,43 @@ import javax.swing.JOptionPane;
 
 public class PathFinderMain {
 	private static String toFind;
-	private static boolean not_in_path;
 	private static ArrayList<File> found_matches = new ArrayList<File>();
 	private static ArrayList<Integer> invoke_or_not_not_in = new ArrayList<Integer>();
-	private static boolean inovke_not_in;
+	private static int running_recursives = 0;
+	private static int started_threads;
 
 	public static void main(String[] args) {
 		toFind = args.length > 0 ? args[0] : JOptionPane
 				.showInputDialog("What program should I find?");
 		String[] split = System.getenv("PATH").split(
 				System.getProperty("path.seperator", ";"));
-		recur_path(split);
+		recur_path(split, false, false);
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException ie) {
+		}
+		while (running_recursives > 0) {
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException ie) {
+			}
+		}
 		if (found_matches.size() < 1) {
 			System.err.println("Didn't find any matches for " + toFind);
 			boolean search_all = JOptionPane.showConfirmDialog(null,
 					"Search the entire computer?") == JOptionPane.YES_OPTION;
 			if (search_all) {
-				not_in_path = true;
-				recur_path(new File[] { new File("/") });
+				recur_path(new File[] { new File("/") }, false, false);
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException ie) {
+				}
+				while (running_recursives > 0) {
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException ie) {
+					}
+				}
 				if (found_matches.size() < 1) {
 					System.err.println("Didn't find any matches for " + toFind);
 				} else {
@@ -50,37 +69,63 @@ public class PathFinderMain {
 										: "."));
 			}
 		}
+		System.err.println("The program started " + started_threads
+				+ " in total.");
 	}
 
-	private static void recur_path(String[] split) {
-		for (String path : split) {
-			File path_f = new File(path).getAbsoluteFile();
-			if (path_f.isDirectory() && path_f.listFiles() != null) {
-				// System.err.println("Searching " + path_f.getAbsolutePath());
-				inovke_not_in = not_in_path;
-				not_in_path = true;
-				recur_path(path_f.listFiles());
-				not_in_path = false;
-			} else {
-				// System.err.println("Testing " + path_f.getAbsolutePath());
-				if (path_f.getPath().endsWith(toFind)) {
-					found_matches.add(path_f);
-					System.err.println("It appears " + path_f.getParent()
-							+ " is" + (inovke_not_in ? "not" : "")
-							+ " on the path.");
-					invoke_or_not_not_in.add((inovke_not_in ? 1 : 0)
-							| (not_in_path ? 2 : 0));
+	private static void recur_path(final String[] split,
+			final boolean invnotin, final boolean not_in) {
+		Runnable r = new Runnable() {
+			int our_recur;
+			int we_started = 0;
+
+			public void run() {
+				running_recursives++;
+				our_recur = started_threads;
+
+				//System.err.println("Started running recursive #" + our_recur);
+
+				for (String path : split) {
+					File path_f = new File(path).getAbsoluteFile();
+					if (path_f.isDirectory() && path_f.listFiles() != null) {
+						// System.err.println("Searching " +
+						// path_f.getAbsolutePath());
+						we_started++;
+						recur_path(path_f.listFiles(), not_in, true);
+					} else {
+						// System.err.println("Testing " +
+						// path_f.getAbsolutePath());
+						if (path_f.getPath().endsWith(toFind)) {
+							found_matches.add(path_f);
+							invoke_or_not_not_in.add((invnotin ? 1 : 0)
+									| (not_in ? 2 : 0));
+						}
+					}
 				}
+
+				//System.err.println("Finished running recursive #" + our_recur);
+
+				if (running_recursives == 0) {
+					System.err
+							.println("WARNING: This runnable would make running_recursives -1!");
+				} else {
+					running_recursives--;
+				}
+				System.err.println("#" + our_recur + " started " + we_started
+						+ " recursive calls");
 			}
-		}
+		};
+		started_threads++;
+		new Thread(r).start();
 	}
 
-	private static void recur_path(File[] listFiles) {
+	private static void recur_path(File[] listFiles, boolean invnotin,
+			boolean not_in) {
 		String[] invoke_with = new String[listFiles.length];
 		int i = 0;
 		for (File f : listFiles) {
 			invoke_with[i++] = f.getAbsolutePath();
 		}
-		recur_path(invoke_with);
+		recur_path(invoke_with, invnotin, not_in);
 	}
 }
