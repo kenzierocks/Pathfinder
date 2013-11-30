@@ -17,6 +17,7 @@ public class PathFinderMain {
 				.showInputDialog("What program should I find?");
 		String[] split = System.getenv("PATH").split(
 				System.getProperty("path.seperator", ";"));
+		toFind = toFind.toLowerCase();
 		recur_path(split);
 		if (found_matches.size() < 1) {
 			System.err.println("Didn't find any matches for " + toFind);
@@ -61,7 +62,7 @@ public class PathFinderMain {
 				recur_path(path_f.listFiles());
 				not_in_path = false;
 			} else {
-				if (path_f.getPath().endsWith(toFind)) {
+				if (path_f.getPath().toLowerCase().endsWith(toFind)) {
 					found_matches.add(path_f);
 					System.err.println("It appears " + path_f.getParent()
 							+ " is" + (inovke_not_in ? "not" : "")

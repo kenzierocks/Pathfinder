@@ -16,6 +16,7 @@ public class PathFinderNonThreaded {
 	public static void main(String[] args) {
 		toFind = args.length > 0 ? args[0] : JOptionPane
 				.showInputDialog("What program should I find?");
+		toFind = toFind.toLowerCase();
 		String[] split = System.getenv("PATH").split(
 				System.getProperty("path.seperator", ";"));
 		recur_path(split);
@@ -64,7 +65,7 @@ public class PathFinderNonThreaded {
 				not_in_path = false;
 			} else {
 				System.err.println("Testing " + path_f.getAbsolutePath());
-				if (path_f.getPath().endsWith(toFind)) {
+				if (path_f.getPath().toLowerCase().endsWith(toFind)) {
 					found_matches.add(path_f);
 					System.err.println("It appears " + path_f.getParent()
 							+ " is" + (inovke_not_in ? "not" : "")
