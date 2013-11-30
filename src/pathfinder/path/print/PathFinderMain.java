@@ -1,12 +1,11 @@
-package pathfinder.path;
+package pathfinder.path.print;
 
 import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
-public class PathFinderNonThreaded {
-
+public class PathFinderMain {
 	private static String toFind;
 	private static boolean not_in_path;
 	private static ArrayList<File> found_matches = new ArrayList<File>();
@@ -57,11 +56,13 @@ public class PathFinderNonThreaded {
 		for (String path : split) {
 			File path_f = new File(path).getAbsoluteFile();
 			if (path_f.isDirectory() && path_f.listFiles() != null) {
+				System.err.println("Searching " + path_f.getAbsolutePath());
 				inovke_not_in = not_in_path;
 				not_in_path = true;
 				recur_path(path_f.listFiles());
 				not_in_path = false;
 			} else {
+				System.err.println("Testing " + path_f.getAbsolutePath());
 				if (path_f.getPath().endsWith(toFind)) {
 					found_matches.add(path_f);
 					System.err.println("It appears " + path_f.getParent()
