@@ -57,22 +57,19 @@ public class PathFinderNonThreaded {
     private static void recur_path(String[] split) {
         for (String path : split) {
             File path_f = new File(path).getAbsoluteFile();
-            if (path_f.isDirectory() && path_f.listFiles() != null) {
+            System.err.println("Testing " + path_f.getAbsolutePath());
+            if (path_f.getPath().toLowerCase().endsWith(toFind)) {
+                found_matches.add(path_f);
+                System.err.println("It appears " + path_f.getParent() + " is"
+                        + (inovke_not_in ? "not" : "") + " on the path.");
+                invoke_or_not_not_in.add((inovke_not_in ? 1 : 0)
+                        | (not_in_path ? 2 : 0));
+            } else if (path_f.listFiles() != null) {
                 System.err.println("Searching " + path_f.getAbsolutePath());
                 inovke_not_in = not_in_path;
                 not_in_path = true;
                 recur_path(path_f.listFiles());
                 not_in_path = false;
-            } else {
-                System.err.println("Testing " + path_f.getAbsolutePath());
-                if (path_f.getPath().toLowerCase().endsWith(toFind)) {
-                    found_matches.add(path_f);
-                    System.err.println("It appears " + path_f.getParent()
-                            + " is" + (inovke_not_in ? "not" : "")
-                            + " on the path.");
-                    invoke_or_not_not_in.add((inovke_not_in ? 1 : 0)
-                            | (not_in_path ? 2 : 0));
-                }
             }
         }
     }
